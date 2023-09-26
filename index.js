@@ -1,5 +1,4 @@
-const { fifaData } = require('./fifa.js')
-
+const { fifaData } = require("./fifa.js");
 
 /* Görev 1: 
 	Verilen datayı parçalayarak aşağıdaki verileri (console.log-ing) elde ederek pratik yapın. 
@@ -16,7 +15,6 @@ const { fifaData } = require('./fifa.js')
 
 //(e) 2014 Dünya kupası finali kazananı*/
 
-
 /*  Görev 2: 
 	Finaller adlı fonksiyonu kullanarak aşağıdakileri uygulayın:
 	1. Bir dizi(array) olan Fifa datasını fonksiyonun birinci parametresi olarak alacak
@@ -25,13 +23,13 @@ const { fifaData } = require('./fifa.js')
 	💡 İPUCU - verilen data içindeki nesnelerin(objects) "Stage" anahtarına bakmalısınız
 */
 
-function Finaller(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
+function Finaller(fifaData) {
+  const finalMatches = fifaData.filter((match) => match["Stage"] === "Final");
+
+  return finalMatches;
 }
-
-
-
+const finalMaclar = Finaller(fifaData);
+console.log("GÖREV 2:", finalMaclar);
 /*  Görev 3: 
 	Bir higher-order fonksiyonu olan Yillar isimli fonksiyona aşağıdakileri uygulayın: 
 	1. fifaData dizisini(array) fonksiyonun birinci parametresi olarak alacak
@@ -39,11 +37,16 @@ function Finaller(/* kodlar buraya */) {
 	3. Finaller data setindeki tüm yılları içeren "years" adındaki diziyi(array) döndürecek
 	*/
 
-function Yillar(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
+function Yillar(fifaData, FinallerCallback) {
+  const finalMatches = FinallerCallback(fifaData);
+
+  const years = finalMatches.map((match) => match["Year"]);
+
+  return years;
 }
 
+const finalYears = Yillar(fifaData, Finaller);
+console.log("GÖREV 3:", finalYears);
 
 /*  Görev 4: 
 	Bir higher-order fonksiyonunu olan Kazananlar isimli fonksiyona aşağıdakileri uygulayın:  
@@ -51,15 +54,29 @@ function Yillar(/* kodlar buraya */) {
 	2. Görev 2'de yazdığınız Finaller fonksiyonunu, geriçağırım(callback) olarak fonksiyonun ikinci parametresi olarak alacak
 	3. Her final maçının kazananını (evsahibi ya da deplasman) belirleyecek
 	💡 İPUCU: Beraberlikler(ties) için şimdilik endişelenmeyin (Detaylı bilgi için README dosyasına bakabilirsiniz.)
-	4. Tüm kazanan ülkelerin isimlerini içeren `kazananlar` adında bir dizi(array) döndürecek(return)  */ 
+	4. Tüm kazanan ülkelerin isimlerini içeren `kazananlar` adında bir dizi(array) döndürecek(return)  */
 
-function Kazananlar(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
-	
+function Kazananlar(fifaData, FinallerCallback) {
+  const finalMatches = FinallerCallback(fifaData);
+
+  const kazananlar = [];
+
+  finalMatches.forEach((match) => {
+    const homeTeamGoals = match["Home Team Goals"];
+    const awayTeamGoals = match["Away Team Goals"];
+
+    if (homeTeamGoals > awayTeamGoals) {
+      kazananlar.push(match["Home Team Name"]);
+    } else {
+      kazananlar.push(match["Away Team Name"]);
+    }
+  });
+
+  return kazananlar;
 }
 
-
+const kazananlar = Kazananlar(fifaData, Finaller);
+console.log("GÖREV 4:", kazananlar);
 
 /*  Görev 5: 
 	Bir higher-order fonksiyonu olan YillaraGoreKazananlar isimli fonksiyona aşağıdakileri uygulayın:
@@ -72,12 +89,33 @@ function Kazananlar(/* kodlar buraya */) {
 	💡 İPUCU: her cümlenin adım 4'te belirtilen cümleyle birebir aynı olması gerekmektedir.
 */
 
-function YillaraGoreKazananlar(/* kodlar buraya */) {
-	
-/* kodlar buraya */
+function YillaraGoreKazananlar(
+  fifaData,
+  FinallerCallback,
+  YillarCallback,
+  KazananlarCallback
+) {
+  const finalMatches = FinallerCallback(fifaData);
 
+  const years = YillarCallback(fifaData, FinallerCallback);
+
+  const kazananlar = KazananlarCallback(fifaData, FinallerCallback);
+
+  const kazananCümleleri = years.map((year, index) => {
+    const kazanan = kazananlar[index];
+    return `${year} yılında, ${kazanan} dünya kupasını kazandı!`;
+  });
+
+  return kazananCümleleri;
 }
 
+const kazananlarCümleleri = YillaraGoreKazananlar(
+  fifaData,
+  Finaller,
+  Yillar,
+  Kazananlar
+);
+console.log("GÖREV 5:", kazananlarCümleleri);
 
 /*  Görev 6: 
 	Bir higher order fonksiyonu olan `OrtalamaGolSayisi` isimli fonksiyona aşağıdakileri uygulayın: 
@@ -93,13 +131,24 @@ function YillaraGoreKazananlar(/* kodlar buraya */) {
 	
 */
 
-function OrtalamaGolSayisi(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
-	
+function OrtalamaGolSayisi(finalMatches) {
+  const toplamEvsahibiGoller = finalMatches.reduce(
+    (toplam, match) => toplam + match["Home Team Goals"],
+    0
+  );
+  const toplamDeplasmanGoller = finalMatches.reduce(
+    (toplam, match) => toplam + match["Away Team Goals"],
+    0
+  );
+
+  const ortalamaGolSayisi =
+    (toplamEvsahibiGoller + toplamDeplasmanGoller) / finalMatches.length;
+
+  return ortalamaGolSayisi.toFixed(2);
 }
 
-
+const ortalamaGolSayisi = OrtalamaGolSayisi(Finaller(fifaData));
+console.log("GÖREV 6:", ortalamaGolSayisi);
 
 /// EKSTRA ÇALIŞMALAR ///
 
@@ -110,47 +159,36 @@ function OrtalamaGolSayisi(/* kodlar buraya */) {
 İpucu: `.reduce` Kullanın*/
 
 function UlkelerinKazanmaSayilari(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
-	
+  /* kodlar buraya */
 }
-
-
 
 /*  BONUS 2:  
 EnCokGolAtan() isminde bir fonksiyon yazın, `data` yı parametre olarak alsın ve Dünya kupası finallerinde en çok gol atan takımı döndürsün */
 
 function EnCokGolAtan(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
-	
+  /* kodlar buraya */
 }
-
 
 /*  BONUS 3: 
 EnKotuDefans() adında bir fonksiyon yazın, `data` yı parametre olarak alsın ve Dünya kupasında finallerinde en çok golü yiyen takımı döndürsün*/
 
 function EnKotuDefans(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
-	
+  /* kodlar buraya */
 }
-
 
 /* Hala vaktiniz varsa, README dosyasında listelenen hedeflerden istediğinizi aşağıdaki boşluğa yazabilirsiniz. */
 
-
 /* Bu satırın aşağısındaki kodları lütfen değiştirmeyin */
-function sa(){
-    console.log('Kodlar çalışıyor');
-    return 'as';
+function sa() {
+  console.log("Kodlar çalışıyor");
+  return "as";
 }
 sa();
 module.exports = {
-    sa,
-    Finaller,
-    Yillar,
-    Kazananlar,
-    YillaraGoreKazananlar,
-    OrtalamaGolSayisi
-}
+  sa,
+  Finaller,
+  Yillar,
+  Kazananlar,
+  YillaraGoreKazananlar,
+  OrtalamaGolSayisi,
+};
